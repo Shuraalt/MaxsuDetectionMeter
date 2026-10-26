@@ -7,7 +7,7 @@ namespace MaxsuDetectionMeter
 	using MeterPair = std::pair<const RE::FormID, std::atomic<std::shared_ptr<MeterObj>>>;
 
 	class MeterHandler :
-		public DKUtil::model::Singleton<MeterHandler>
+		public Singleton<MeterHandler>
 	{
 	public:
 		static bool ShouldDisplayMeter(RE::Actor* a_owner);

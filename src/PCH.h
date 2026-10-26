@@ -16,8 +16,8 @@ using namespace REL::literals;
 // Plugin
 #include "Plugin.h"
 
-// DKUtil
-#include "DKUtil/Logger.hpp"
+// Logging / helpers (replaces DKUtil)
+#include "Compat.h"
 
 namespace stl
 {

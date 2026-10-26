@@ -1,28 +1,14 @@
 #include "MeterSettings.h"
-#include "DKUtil/Config.hpp"
 #include "DataHandler.h"
 #include "Renderer.h"
 
 namespace MaxsuDetectionMeter
 {
-	static auto MainConfig = COMPILE_PROXY("MaxsuDetectionMeter.ini"sv);
+	static constexpr auto ConfigPath = "Data\\SKSE\\Plugins\\MaxsuDetectionMeter.ini";
 
 	MeterSettings::MeterSettings()
 	{
-		MainConfig.Bind(enableDebugLog, false);
-		MainConfig.Bind(fadeSpeed, 255.f);
-		MainConfig.Bind(flashSpeed, 550.f);
-		MainConfig.Bind(flashScale, 0.25f);
-		MainConfig.Bind(flashShift, 36);
-		MainConfig.Bind<0.f, 1.f>(minFillingSpeed, 0.35f);
-		MainConfig.Bind<0.f, 1.f>(maxFillingSpeed, 0.95f);
-		MainConfig.Bind<0, 100>(minTriggerLevel, 25);
-		MainConfig.Bind(radiusX, 310.f);
-		MainConfig.Bind(radiusY, 310.f);
-		MainConfig.Bind(centerOffsetX, 0);
-		MainConfig.Bind(centerOffsetY, -40);
-
-		MainConfig.Load();
+		LoadValues();
 
 		PrintSettingValue(fadeSpeed);
 		PrintSettingValue(flashSpeed);
@@ -39,6 +25,23 @@ namespace MaxsuDetectionMeter
 		ScalingForResolution();
 	}
 
+	void MeterSettings::LoadValues()
+	{
+		constexpr double inf = 1.0e9;
+		enableDebugLog.Load(ConfigPath, false, false, true);
+		fadeSpeed.Load(ConfigPath, 255.0, -inf, inf);
+		flashSpeed.Load(ConfigPath, 550.0, -inf, inf);
+		flashScale.Load(ConfigPath, 0.25, -inf, inf);
+		flashShift.Load(ConfigPath, 36, -1000000, 1000000);
+		minFillingSpeed.Load(ConfigPath, 0.35, 0.0, 1.0);
+		maxFillingSpeed.Load(ConfigPath, 0.95, 0.0, 1.0);
+		minTriggerLevel.Load(ConfigPath, 25, 0, 100);
+		radiusX.Load(ConfigPath, 310.0, -inf, inf);
+		radiusY.Load(ConfigPath, 310.0, -inf, inf);
+		centerOffsetX.Load(ConfigPath, 0, -1000000, 1000000);
+		centerOffsetY.Load(ConfigPath, -40, -1000000, 1000000);
+	}
+
 	void MeterSettings::ScalingForResolution()
 	{
 		float widthScale = Renderer::GetResolutionScaleWidth();
@@ -53,7 +56,7 @@ namespace MaxsuDetectionMeter
 
 	void MeterSettings::Reload()
 	{
-		MainConfig.Load();
+		LoadValues();
 		ScalingForResolution();
 		DEBUG("Reload Configuration Settings!");
 	}
