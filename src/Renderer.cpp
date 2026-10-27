@@ -20,7 +20,6 @@ namespace MaxsuDetectionMeter
 	{
 		auto& io = ImGui::GetIO();
 		if (uMsg == WM_KILLFOCUS) {
-			io.ClearInputCharacters();
 			io.ClearInputKeys();
 		}
 
@@ -38,10 +37,10 @@ namespace MaxsuDetectionMeter
 			return;
 		}
 
-		auto render_data = render_manager->data;
+		auto& render_data = render_manager->GetRuntimeData();
 
 		INFO("Getting swapchain...");
-		auto swapchain = render_data.renderWindows->swapChain;
+		auto swapchain = reinterpret_cast<IDXGISwapChain*>(render_data.renderWindows[0].swapChain);
 		if (!swapchain) {
 			ERROR("Cannot find swapchain. Initialization failed!");
 			return;
@@ -54,8 +53,8 @@ namespace MaxsuDetectionMeter
 			return;
 		}
 
-		device = render_data.forwarder;
-		context = render_data.context;
+		device = reinterpret_cast<ID3D11Device*>(render_data.forwarder);
+		context = reinterpret_cast<ID3D11DeviceContext*>(render_data.context);
 
 		INFO("Initializing ImGui...");
 		ImGui::CreateContext();
@@ -111,8 +110,6 @@ namespace MaxsuDetectionMeter
 			return false;
 		}
 
-		auto render_data = render_manager->data;
-
 		// Load from disk into a raw RGBA buffer
 		int image_width = 0;
 		int image_height = 0;
@@ -147,7 +144,7 @@ namespace MaxsuDetectionMeter
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		render_data.forwarder->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
+		device->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
 		pTexture->Release();
 
 		out_width = image_width;
@@ -262,7 +259,7 @@ namespace MaxsuDetectionMeter
 			//-------------------------------------------------------------------------------------------------------------------------
 
 			//Draw Non-Flashing Meter
-			ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
+			ImageRotated((ImTextureID)(std::uintptr_t)(meterset[type].my_texture), centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
 
 			//Draw Flashing Meter
 			if (info->flashing.IsFlashingStart() && info->filling.GetCurrentFilling() >= 1.0f) {
@@ -276,7 +273,7 @@ namespace MaxsuDetectionMeter
 				const float flash_offsetX = (meterHandler->meterSettings->radiusX.get_data() + meterHandler->meterSettings->flashShift.get_data() * (size - 1.f)) * std::sin(angle * 3.14f / 180.f);
 				const float flash_offsetY = -(meterHandler->meterSettings->radiusY.get_data() + meterHandler->meterSettings->flashShift.get_data() * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);
 
-				ImageRotated(meterset[type].my_texture, centerPos + ImVec2(flash_offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
+				ImageRotated((ImTextureID)(std::uintptr_t)(meterset[type].my_texture), centerPos + ImVec2(flash_offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
 			} else {
 				info->flashing.SetValue(255);
 			}
@@ -300,7 +297,7 @@ namespace MaxsuDetectionMeter
 			return;
 
 		auto ctrlMap = RE::ControlMap::GetSingleton();
-		if (!ctrlMap || !ctrlMap->IsSneakingControlsEnabled() || !ctrlMap->IsMovementControlsEnabled() || ctrlMap->contextPriorityStack.back() != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay)
+		if (!ctrlMap || !ctrlMap->IsSneakingControlsEnabled() || !ctrlMap->IsMovementControlsEnabled() || ctrlMap->GetRuntimeData().contextPriorityStack.back() != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay)
 			return;
 
 		auto meterHandler = MeterHandler::GetSingleton();

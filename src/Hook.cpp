@@ -17,7 +17,7 @@ namespace MaxsuDetectionMeter
 
 		if (playerref && playerref->IsSneaking() && MeterHandler::ShouldDisplayMeter(this) &&
 			cameraState && (cameraState->id == RE::CameraState::kFirstPerson || cameraState->id == RE::CameraState::kThirdPerson) && cameraRoot &&
-			ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled() && ctrlMap->contextPriorityStack.back() == RE::UserEvents::INPUT_CONTEXT_ID::kGameplay) {
+			ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled() && ctrlMap->GetRuntimeData().contextPriorityStack.back() == RE::UserEvents::INPUT_CONTEXT_ID::kGameplay) {
 			auto level = MeterHandler::ReCalculateDetectionLevel(RequestDetectionLevel(playerref));
 			auto stealthPoint = MeterHandler::GetStealthPoint(this);
 			auto meterHandler = MeterHandler::GetSingleton();
